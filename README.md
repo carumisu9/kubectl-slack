@@ -1,1 +1,1 @@
-# kubectl-slack
+# kubenetes-slack
