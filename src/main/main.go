@@ -29,7 +29,7 @@ func notifySlack(obj interface{}, action string) {
 	url := os.Getenv("WEBHOOK_URL")
 
 	//Form JSON payload to send to Slack
-	json := `{"text": "Pod ` + action + ` in cluster: ` + pod.ObjectMeta.Name + `"}`
+	json := `{"text": "Pod ` + action + ` in cluster: ` + pod.ObjectMeta.Name + ` namespace: ` + pod.ObjectMeta.Namespace + `"}`
 
 	//Post JSON payload to the Webhook URL
 	client := http.Client{}
@@ -41,20 +41,18 @@ func notifySlack(obj interface{}, action string) {
 		fmt.Println("Unable to reach the server.")
 	}
 }
+
 func podCreated(obj interface{}) {
 	notifySlack(obj, "created")
 }
 func podDeleted(obj interface{}) {
 	notifySlack(obj, "deleted")
 }
-func podUpdated(obj interface{}) {
-	notifySlack(obj, "updated")
-}
+
 func watchPods(client *client.Client, store cache.Store) cache.Store {
 
 	//Define what we want to look for (Pods)
-	// watchlist := cache.NewListWatchFromClient(client, "nodes", api.NamespaceAll, fields.Everything())
-	watchlist := cache.NewListWatchFromClient(client, "pods", "rails", fields.Everything())
+	watchlist := cache.NewListWatchFromClient(client, "pods", api.NamespaceAll, fields.Everything())
 	resyncPeriod := 30 * time.Minute
 
 	//Setup an informer to call functions when the watchlist changes
@@ -65,7 +63,6 @@ func watchPods(client *client.Client, store cache.Store) cache.Store {
 		framework.ResourceEventHandlerFuncs{
 			AddFunc:    podCreated,
 			DeleteFunc: podDeleted,
-			UpdateFunc: podUpdated,
 		},
 	)
 
