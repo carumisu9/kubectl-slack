@@ -47,10 +47,14 @@ func podCreated(obj interface{}) {
 func podDeleted(obj interface{}) {
 	notifySlack(obj, "deleted")
 }
+func podUpdated(obj interface{}) {
+	notifySlack(obj, "updated")
+}
 func watchPods(client *client.Client, store cache.Store) cache.Store {
 
 	//Define what we want to look for (Pods)
-	watchlist := cache.NewListWatchFromClient(client, "pods", api.NamespaceAll, fields.Everything())
+	// watchlist := cache.NewListWatchFromClient(client, "nodes", api.NamespaceAll, fields.Everything())
+	watchlist := cache.NewListWatchFromClient(client, "pods", "rails", fields.Everything())
 	resyncPeriod := 30 * time.Minute
 
 	//Setup an informer to call functions when the watchlist changes
@@ -61,6 +65,7 @@ func watchPods(client *client.Client, store cache.Store) cache.Store {
 		framework.ResourceEventHandlerFuncs{
 			AddFunc:    podCreated,
 			DeleteFunc: podDeleted,
+			UpdateFunc: podUpdated,
 		},
 	)
 
